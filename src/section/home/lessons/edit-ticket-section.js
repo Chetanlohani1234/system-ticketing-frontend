@@ -213,7 +213,7 @@ const EditTicketSection = () => {
             <ToastContainer></ToastContainer>
             <div className="row">
                 <div className="d-flex w-100 justify-content-between align-items-center mb-4">
-                    <h4 className="mb-0">Edit Venue</h4>
+                    <h4 className="mb-0">Edit Ticket</h4>
                     {/* <button className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ImportProuct">Import Lesson</button> */}
                     <div class="modal fade" id="ImportProuct" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg">
@@ -264,12 +264,12 @@ const EditTicketSection = () => {
               <div className="card-body text=center">
                 <h4 className="f-700">Thumbnail</h4>
                 <div className="Camp-thumbnail" onClick={triggerFile}>
-                {(data?.images ?
+                {(data?.image ?
                     <img
                     style={{ width: "100%" }}
-                    src={"https://https://opm-stream.onrender.com/" + data?.images[0]?.path}
+                    src={data?.image?.url}
                     ref={imgRef}
-                    alt="Camp"
+                    alt="ticket"
                   />
                                             :  
                                             <img
@@ -283,7 +283,7 @@ const EditTicketSection = () => {
                  
                 </div>
                 <p className="text-center">
-                  Set the Venue thumbnail image. Only *.png, *.jpg and *.jpeg
+                  Set the Ticket thumbnail image. Only *.png, *.jpg and *.jpeg
                   image files are accepted
                 </p>
               </div>
