@@ -15,7 +15,7 @@ const EditTicket = () => {
                     </div>
                 </div>
             </section>
-            <Footer />
+            {/* <Footer /> */}
         </div>
     );
 };

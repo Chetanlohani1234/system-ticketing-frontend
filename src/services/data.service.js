@@ -37,16 +37,10 @@ const getSingleEvent = (id) => {
   return axios.get(API_URL + "api/ownerEvent/getById/" + id);
 };
 //http://localhost:3000/api/ownerEvent/getById/65979e8c38966379ad7faeef
+
 const addTicketing = (data) => {
   return axios.post(API_URL + "api/create-post", data);
 };
-
-//http://localhost:3000/api/ownerVenue/add
-
-const getVenue = (id) => {
-  return axios.get(API_URL + "api/ownerVenue/getAllByUserId/"+id);
-};
-//http://localhost:3000/api/ownerVenue/getAllByUserId/6595464c55e8328ba9038040
 
 const getTicket = () => {
   return axios.get(API_URL + "api/get-posts");
@@ -61,17 +55,33 @@ const updateTicket = (id, data) => {
   return axios.put(API_URL + "api/update-post/" + id, data);
 };
 
-//http://localhost:3000/api/ownerVenue/update/6597a6b19eb050bc474e220e
-
-const deleteEvent = (_id) => {
-  return axios.delete(API_URL + "api/ownerEvent/delete/" + _id);
-};
-//http://localhost:3000/api/ownerEvent/delete/65979e8c38966379ad7faeef
-
-//http://localhost:3000/api/event/delete/6594127d159f58a6007238a2
 
 const deleteTicket = (_id) => {
   return axios.delete(API_URL + "api/delete-post/" + _id);
+};
+
+const getUserDetail = (id) => {
+  return axios.get(API_URL + "api/user/getUserById/"+ id);
+};
+
+const submitComment = (data) => {
+  return axios.post(API_URL + "api/user/comment", data);
+};
+
+const getComment = () => {
+  return axios.get(API_URL + "api/user/getComment");
+};
+
+const getComments = (_id) => {
+  return axios.get(API_URL + "api/user/getCommentById/" + _id);
+};
+
+const getVenue = (id) => {
+  return axios.get(API_URL + "api/ownerVenue/getAllByUserId/"+id);
+};
+
+const deleteEvent = (_id) => {
+  return axios.delete(API_URL + "api/ownerEvent/delete/" + _id);
 };
 
 //http://localhost:3000/api/ownerVenue/delete/6597a6b19eb050bc474e220e
@@ -154,9 +164,7 @@ const getNotifications = (id) => {
 //   return axios.get(API_URL + "api/users/detail");
 // };
 
-const getUserDetail = (id) => {
-  return axios.get(API_URL + "api/user/getById/"+ id);
-};
+
 
 //http://localhost:3000/api/user/getById/6595464c55e8328ba9038040
 
@@ -207,15 +215,22 @@ const DataService = {
 
   addEvent,
   getEvent,
+
   addTicketing,
   getTicket,
+  deleteTicket,
+  getSingleTicket,
+  updateTicket,
+  getUserDetail,
+  submitComment,
+  getComment,
+  getComments,
+
   getVenue,
   getSingleEvent,
   updateEvent,
   deleteEvent,
-  deleteTicket,
-  getSingleTicket,
-  updateTicket,
+
   addArtist,
   getArtist,
   getSingleArtist,
@@ -225,8 +240,6 @@ const DataService = {
   getCategory,
   changePassword,
 
-
-  getUserDetail,
   updateCategory,
   getCategoryDetail,
   

@@ -1,10 +1,19 @@
 import React, { useEffect, useState, useRef } from "react";
 import DataService from "../../../services/data.service";
+import { Link } from 'react-router-dom';
 import { useNavigate, useParams } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import { Editor } from '@tinymce/tinymce-react';
 import TagsInput from '../../../common/TagsInput'
 import 'react-toastify/dist/ReactToastify.css';
+import '../lessons/edit-ticket-section.css'
+import moment from 'moment';
+import io from 'socket.io-client';
+
+// Create socket connection
+const socket = io("https://system-ticketing-backend.onrender.com/"); // Example server URL
+//const socket = io("http://localhost:3000")
+
 const styles = {
     input: {
         opacity: '0%', // dont want to see it
@@ -25,17 +34,12 @@ const EditTicketSection = () => {
     const [description, setDescription] = useState("");
     const [category, setCategory] = useState("");
     const [priority,setPriority] = useState("");
+    const [comment, setComment] = useState('');
+    const [comments, setComments] = useState([]);
+    const [postId,setPostId] = useState(" ");
+    const [userName,setUserName] = useState(" ")
+    //const [socket, setSocket] = useState(null);
 
-    const [eventName, setEventName] = useState("");
-
-    const [location, setLocation] = useState("");
-    const [attendies, setAttendies] = useState("");
-    const [price, setPrice] = useState("");
-    const [date, setDate] = useState("");
-    const [reviews, setReviews] = useState("");
-    
-
-    const [lessonId, setLessonId] = useState("");
     const [message, setMessage] = useState("");
     const [details, setDetails] = useState("");
     const [loading, setLoading] = useState(false);
@@ -49,24 +53,154 @@ const EditTicketSection = () => {
     const [allActive, setAllActive] = useState(false);
     const [type, setType] = useState('');
     const [data, setData] = useState('');
+    const [editorContent, setEditorContent] = useState('');
+   // const socket = io();
+
+    const storedUserId = JSON.parse(localStorage.getItem("userId"));
+   // const storedUserName = JSON.parse(localStorage.getItem(""));
+    
+//    useEffect(() => {
+//     const newSocket = io('http://localhost:5000'); // Replace with your backend server URL and port
+//     setSocket(newSocket);
+
+//     // Your frontend socket logic here...
+    
+//     return () => newSocket.disconnect();
+// }, []);
+
+ 
+ 
+   const username = data?.user_id?.name;
+   console.log("hshgdhsgd",username);
+
+//    useEffect(() => {
+//     if (!socket) return;
+
+//     // Listen for new comments
+//     socket.on('comment', data => {
+//         appendToDom(data);
+//     });
+
+//     // Listen for typing events
+//     socket.on('typing', data => {
+//         // Handle typing indicator
+//     });
+
+//     return () => {
+//         socket.off('comment');
+//         socket.off('typing');
+//     };
+// }, [socket]);
+
+
+useEffect(() => {
+    // Listen for 'comment' events from the server
+    socket.on('comment', (data) => {
+        // Update the comments state with the received comment
+        setComments((prevComments) => [...prevComments, data]);
+    });
+
+    // Clean up the event listener when the component unmounts
+    return () => {
+        socket.off('comment');
+    };
+}, [socket]);
 
 
 
     const getSinglelesson = () => {
         DataService.getSingleTicket(params.id).then((data) => {
             setData(data?.data?.data);
+            setPostId(data?.data?.data?._id);
             setHeading(data?.data?.data?.heading);
             setCategory(data?.data?.data?.category);
             setPriority(data?.data?.data?.priority);
-            setDescription(data?.data?.data?.description)
-            
+            setDescription(data?.data?.data?.description);
+            setUserName(data?.data?.data?.user_id?.name);
+
             setLoading(false);
         });
     };
-    console.log("Data:",data)
+    console.log("Data:",userName);
     useEffect(() => {
         getSinglelesson();
     }, [params.id])
+
+ 
+    const handleChange = (e) => {
+        setComment(e.target.value);
+    };
+
+    const handlePostComment = (e) => {
+        e.preventDefault();
+        if (!comment.trim()) return;
+
+        const newComment = {
+            username: userName,
+            user_id:  storedUserId, // Assuming you have a username state or prop
+            post_id: postId,
+            comment: comment,
+            time: new Date() // Assuming you want to add current time
+        };
+
+        setComments([newComment, ...comments]);
+        
+        // Append to state
+        //setComments(prevComments => [newComment, ...prevComments]);
+        
+        setComment('');
+        
+        // Broadcast
+           broadcastComment(newComment); 
+    };
+
+    const broadcastComment = (newComment) => {
+        //Socket 
+        socket.emit('comment',newComment);
+    };
+
+    // const appendToDom = (data) => {
+    //     setComments([data, ...comments]);
+        
+    // };
+
+    // socket.on('comment', (data) => {
+    //     setComments(data)
+    // })
+
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     if (!comment) return;
+    //     const data = {
+    //        // username: username,
+    //         comment: comment,
+    //         user_id: storedUserId,
+    //         post_id: postId,
+    //         time: moment().format()
+    //     };
+    //     appendToDom(data);
+    //     setComment('');
+    //     broadcastComment(data);
+    //     syncWithDb(data);
+    // };
+
+    // useEffect(() => {
+    //     getComments();
+    // }, []);
+
+    // const getComments = () => {
+    //     DataService.getComment().then((data) => {
+    //        // const filteredComments = data?.data?.data?.comment.filter(comment => comment.post_id === postId);
+    //        //const filteredComments = data?.data?.data?.filter(comment => comment.post_id._id === postId);
+    //        const filteredComments = data?.data?.data?.map(item => item.comment).filter(comment => comment.post_id._id === postId);
+    //        setComments(filteredComments);
+    //         setLoading(false);
+    //        // console.log("comments:", comments); // Log comments after setting the state
+    //     }).catch((error) => {
+    //         setLoading(false);
+    //         setMessage(error?.response?.data?.msg)
+    //     });
+    // };
 
     const onFileChangeCapture = (e) => {
         /*Selected files data can be collected here.*/
@@ -147,64 +281,46 @@ const EditTicketSection = () => {
         setPriority(priority);
     };
 
-
-
-    const storedUserId = JSON.parse(localStorage.getItem("userId"));
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setMessage("");
-        const data = new FormData();
-        if (file && file.length > 0) {
-            setLoading(true);
-            data.append('image', file[0])
-            if (uploadedFiles && uploadedFiles.length > 0) {
-                uploadedFiles.some((file) => {
-                    data.append('image', file)
-                })
-            }
-            data.append('category',category);
-            data.append('heading', heading);
-           //data.append('description', editorRef.current.getContent());
-            data.append('description', description);
-
-            data.append('priority', priority);
-           // data.append('ownerId',storedUserId);
-
-            DataService.updateTicket(params.id,data).then(
-                () => {
-                    toast.success('Ticket Updated successfully', {
-                        position: toast.POSITION.TOP_RIGHT
-                    });
-                    setTimeout(() => {
-                        navigate("/ticket");
-                        window.location.reload();
-                    }, 2000); // Adjust the delay time as needed
-                },
-                    
-                    //navigate("/ticket");
-                    //window.location.reload();
-
-                //},
-                (error) => {
-                    const resMessage =
-                        (error.response &&
-                            error.response.data &&
-                            error.response.data.msg) ||
-                        error.message ||
-                        error.toString();
-                    setLoading(false);
-                    toast.error(resMessage, {
-                        position: toast.POSITION.TOP_RIGHT
-                    });
-                }
-            );
-        } else {
-            toast.error('Please select Ticket thumbnail', {
-                position: toast.POSITION.TOP_RIGHT
-            });
-        }
+    const handleEditorChange = (content, editor) => {
+        setEditorContent(content);
     };
+    console.log("dcdcdcdxc",editorContent);
+
+
+
+
+    // Function to handle comment submission
+    // const handleSubmit = (e) => {
+    //     e.preventDefault();
+    //     //Check if comment is empty
+    //     // if (!comment.trim()) {
+    //     //     toast.error('Comment cannot be empty', { position: toast.POSITION.TOP_RIGHT });
+    //     //     return;
+    //     // }
+
+    //     const data = {
+    //         user_id : storedUserId,
+    //         post_id : postId,
+    //         comment : editorContent,
+    //     }
+    //     // Submit comment
+    //     DataService.submitComment(data)
+    //         .then(response => {
+    //             // Clear comment input
+    //             setEditorContent('');
+    //             // Fetch updated comments
+    //             getComments();
+    //             // Show success message
+    //             toast.success('Comment submitted successfully', { position: toast.POSITION.TOP_RIGHT });
+    //         })
+    //         .catch(error => {
+    //             console.error('Error submitting comment:', error);
+    //             // Show error message
+    //             toast.error('Failed to submit comment', { position: toast.POSITION.TOP_RIGHT });
+    //         });
+    // };
+
+    
 
     return (
 
@@ -212,18 +328,25 @@ const EditTicketSection = () => {
         <div className="container-fluid">
             <ToastContainer></ToastContainer>
 
-                <div className="row">
-                    {/* <div className="col-xxl-3 col-lg-4">
-                    <div className="card mb-4">
+
+            <form onSubmit={handlePostComment} className="mt-4 login" ref={form}>
+                {message && (
+                    <div className="form-group">
+                        <div className="alert alert-danger" role="alert">
+                            {message}
+                        </div>4
                     </div>
+                )}
 
-                    </div> */}
-
+                <div className="row">
                    <div className="col-xxl-7 col-lg-8 ps-xxl-5 ps-md-3 ps-0">
                         <div className="card mb-5">
                             <div className="card-body p-4">
                                 {heading} {"   "} 
                                 {new Date(data.createdAt).toLocaleString([], { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}<br/><br/>
+                                <h6>Contact : {data?.user_id?.name}</h6>
+                                <h6>Email : {data?.user_id?.email}</h6>
+                                <h6>Phone Number : {data?.user_id?.phoneNo}</h6>
                                 {description}
                             </div>
                        </div>
@@ -233,6 +356,15 @@ const EditTicketSection = () => {
                     <div className="col-xxl-5 col-lg-4 ps-xxl-5 ps-md-3 ps-0">
                         <div className="card mb-5">
                             <div className="card-body p-4">
+                                
+
+                                        <Link to={"/edit-ticket/" + data._id} className="edit-button"><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12.8415 0.623009C13.0368 0.427747 13.3534 0.427747 13.5486 0.623009L16.5486 3.62301C16.7439 3.81827 16.7439 4.13485 16.5486 4.33012L6.54864 14.3301C6.50076 14.378 6.44365 14.4157 6.38078 14.4408L1.38078 16.4408C1.19507 16.5151 0.982961 16.4715 0.84153 16.3301C0.700098 16.1887 0.656561 15.9766 0.730845 15.7909L2.73084 10.7909C2.75599 10.728 2.79365 10.6709 2.84153 10.623L12.8415 0.623009ZM11.9022 2.97656L14.1951 5.26946L15.488 3.97656L13.1951 1.68367L11.9022 2.97656ZM13.488 5.97656L11.1951 3.68367L4.69508 10.1837V10.4766H5.19508C5.47123 10.4766 5.69508 10.7004 5.69508 10.9766V11.4766H6.19508C6.47123 11.4766 6.69508 11.7004 6.69508 11.9766V12.4766H6.98798L13.488 5.97656ZM3.72673 11.152L3.62121 11.2575L2.09261 15.079L5.9141 13.5504L6.01963 13.4449C5.83003 13.3739 5.69508 13.191 5.69508 12.9766V12.4766H5.19508C4.91894 12.4766 4.69508 12.2527 4.69508 11.9766V11.4766H4.19508C3.98068 11.4766 3.79779 11.3416 3.72673 11.152Z" fill="#2166a5" />
+                                        </svg>
+                                         Edit
+                                        </Link>
+
+
                                 <h5>Ticket Status:</h5>
 
                                 <div className="mb-3">
@@ -246,9 +378,10 @@ const EditTicketSection = () => {
 
                                     >
                                         <option value="" disabled selected>Select Category</option>
-                                        <option value="option1">Option 1</option>
-                                        <option value="option2">Option 2</option>
-                                        <option value="option3">Option 3</option>
+                                        <option value="general">General</option>
+                                        <option value="support">Support</option>
+                                        <option value="advertising">Advertising</option>
+                                        <option value="billing">Billing</option>
                                         {/* Add more options as needed */}
                                     </select>
                                 </div>
@@ -270,52 +403,108 @@ const EditTicketSection = () => {
                                     <option value="Low">Low</option>
                                     {/* Add more options as needed */}
                                 </select>
-                                </div>
+                               </div>
 
 
                             </div>
                        </div>
                     </div>
 
+
                     
                     <div className="col-xxl-7 col-lg-8 ps-xxl-5 ps-md-3 ps-0">
                         <div className="card mb-5">
                             <div className="card-body p-4">
-                            <Editor
+
+                            <div className="mb-3">
+                                    <label className="form-label">Message</label>
+                                    <textarea
+                                        placeholder="Type your Message"
+                                        className="form-control"
+                                         value={comment}
+                                         onChange={handleChange}
+                                        rows="10"></textarea>
+                            </div>            
+
+                            {/* <Editor
                                 apiKey="1nolfd56snnawdzchbfmu06ihvzd2nkhvgvdj5i85do1bws6"
                                 onInit={(evt, editor) => (editorRef.current = editor)}
                                 initialValue=" "
+                                value={editorContent}
+                                onEditorChange={handleEditorChange}
                                 init={{
                                     height: 500,
                                     menubar: true,
                                     plugins: [
-                                    "advlist",
-                                    "autolink",
-                                    "lists",
-                                    "link",
-                                    "image",
-                                    "charmap",
-                                    "preview",
-                                    "anchor",
-                                    "searchreplace",
-                                    "visualblocks",
-                                    "code",
-                                    "fullscreen",
-                                    "insertdatetime",
-                                    "media",
-                                    "table",
-                                    "code",
-                                    "help",
-                                    "wordcount",
+                                        "advlist",
+                                        "autolink",
+                                        "lists",
+                                        "link",
+                                        "image",
+                                        "charmap",
+                                        "preview",
+                                        "anchor",
+                                        "searchreplace",
+                                        "visualblocks",
+                                        "code",
+                                        "fullscreen",
+                                        "insertdatetime",
+                                        "media",
+                                        "table",
+                                        "code",
+                                        "help",
+                                        "wordcount",
                                     ],
                                     toolbar:
-                                    "undo redo | blocks | " +
-                                    "bold italic forecolor | alignleft aligncenter " +
-                                    "alignright alignjustify | bullist numlist outdent indent | " +
-                                    "removeformat | help",
+                                        "undo redo | blocks | " +
+                                        "bold italic forecolor | alignleft aligncenter " +
+                                        "alignright alignjustify | bullist numlist outdent indent | " +
+                                        "removeformat | help",
                                     content_style: "body { font-size:14px }",
                                 }}
-                />
+                            /> */}
+
+                            <div className="attachment-container">
+                                <h3>Attachments:</h3>
+                                <label htmlFor="file-upload" className="custom-file-upload">
+                                    <i className="fa fa-cloud-upload"></i> Upload File
+                                </label>
+                                <input id="file-upload" type="file" />
+                            </div>
+
+                            <div className="mb-3">
+                                <label className="form-label">Change priority to</label>
+                                <select
+                                    className="form-select"
+                                    required
+                                    value={priority}
+                                    onChange={onChangePriority}
+                                    style={{ width: '100px', height: '40px', backgroundColor: 'lightgray', border: '1px solid gray', display: 'inline-block',marginLeft:'10px' }}
+                                >
+                                    <option value="" disabled selected>Select Priority</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                    {/* Add more options as needed */}
+                                </select>
+                               </div>
+
+                               <div className="d-flex justify-content-end btn-min-width">
+                                <button type="submit" className="btn btn-primary" >
+
+                                    <span>Submit</span>
+                                </button>
+
+                                {/* {comments.map((comment, index) => (
+                                    <div key={index} className="mb-3">
+                                        <p>Comment by: {comment.username}</p>
+                                        <p>{comment.text}</p>
+                                    </div>
+                                ))} */}
+
+                            </div>
+
+
                             </div>
                        </div>
                     </div>
@@ -325,16 +514,52 @@ const EditTicketSection = () => {
                             <div className="card-body p-4">
                               <div className="mb-3">
                                 <h4>Ticket Details</h4><br/>
-                                <h6 style={{fontSize:'15px'}}>Tracking ID:{data._id}</h6>
-                                <h6 style={{fontSize:'15px'}}>Created on: {data.createdAt}</h6>
-                                <h6 style={{fontSize:'15px'}}>Updated: {data.updatedAt}</h6>
+                                <h6 style={{fontSize:'16px'}}>Tracking ID:{data._id}</h6>
+                                <h6 style={{fontSize:'16px',marginTop:'20px'}}>Created on: {data.createdAt}</h6>
+                                <h6 style={{fontSize:'16px',marginTop:'20px'}}>Updated: {data.updatedAt}</h6>
                               </div>   
 
                             </div>
                        </div>
                     </div>
 
+                    {/* <div className="col-xxl-7 col-lg-8 ps-xxl-5 ps-md-3 ps-0">
+                      <div className="card mb-5">
+                        <div className="card-body p-4">
+    
+            
+                        </div>
+                     </div>
+                    </div> */}
+
+
                 </div>
+            </form>
+
+            <div className="col-md-8">
+            <ul className="comment_box">
+                {comments.map((comment, index) => (
+                    <li key={index} className="comment">
+                        <div className="card border-light mb-3">
+                            <div className="card-body">
+                                <h6>{comment.username}</h6>
+                                <p>{comment.comment}</p>
+                                <div>
+                                    <img 
+                                        style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                                        src="-" 
+                                        alt="clock"
+                                    /> 
+                                    <small>{moment(comment.time).format('LT')}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                ))}
+            </ul>
+        </div>
+               
+
         </div>
        
     );

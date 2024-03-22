@@ -157,12 +157,6 @@ const EditTicketSection = () => {
         const data = new FormData();
         if (file && file.length > 0) {
             setLoading(true);
-            data.append('image', file[0])
-            if (uploadedFiles && uploadedFiles.length > 0) {
-                uploadedFiles.some((file) => {
-                    data.append('image', file)
-                })
-            }
             data.append('category',category);
             data.append('heading', heading);
            //data.append('description', editorRef.current.getContent());
@@ -390,7 +384,7 @@ const EditTicketSection = () => {
                   }}
                 /> */}
 
-                    </div>
+                                </div>
 
                         <div className="d-flex justify-content-end btn-min-width">
                                 <button onClick={handleSubmit} className="btn btn-primary" >

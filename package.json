@@ -30,6 +30,8 @@
     "react-sortable": "^2.0.0",
     "react-toastify": "^9.1.2",
     "react-validation": "^3.0.7",
+    "socket.io": "^4.7.5",
+    "socket.io-client": "^4.7.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

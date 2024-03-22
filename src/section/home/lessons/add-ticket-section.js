@@ -5,9 +5,6 @@ import { ToastContainer, toast } from 'react-toastify';
 import { Editor } from '@tinymce/tinymce-react';
 import TagsInput from '../../../common/TagsInput'
 import 'react-toastify/dist/ReactToastify.css';
-import Hobby from "./Hobby";
-import Amenities from "./Amenities";
-import Other from "./Other";
 
 const styles = {
     input: {
@@ -19,17 +16,17 @@ const MAX_COUNT = 5;
 const AddTicketSection = () => {
     const editorRef = useRef(null);
     const form = React.useRef();
+    const [data,setData] = useState("");
+    const [name,setName] = useState("");
+    const [email,setEmail] = useState("");
     const [heading, setHeading] = useState("");
     const [description, setDescription] = useState("");
-    const [feature, setFeature] = useState("");
-
     const [category, setCategory] = useState("");
     const [priority,setPriority] = useState("");
 
-    const [price, setPrice] = useState("");
-    const [review, setReview] = useState("");
+ 
     
-    const [LessonId, setLessonId] = useState("");
+
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [file, setFile] = useState(null);
@@ -39,34 +36,37 @@ const AddTicketSection = () => {
     const inputFileRef = React.useRef();
     const imgRef = React.useRef();
     const navigate = useNavigate();
-    const [allActive, setAllActive] = useState(false);
-    const [type, setType] = useState('');
-    const [rating, setRating] = useState("");
 
-    const [amen,setAmen] = useState([]);
-    const [amenities, setAmenities] = useState([]);
+    // useEffect(() => {
+    //     // getData();
+    // }, [images]);
 
-    const [hobbies, setHobbies] = useState([]);
-    const [inputValue, setInputValue] = useState([]);
-
-    const [otherValue, setOtherValue] = useState([]);
-    const [other, setOther] = useState([]);
-  
-
-    // const Hobby = ({ hobby, onDelete }) => {
-    //     return (
-    //       <>
-          
-    //         <span className="interset">
-    //           {hobby} <i class="fas fa-times" onClick={onDelete}></i>
-    //         </span>
-    //       </>
-    //     );
-    //   };
-
+    const storedUserId = JSON.parse(localStorage.getItem("userId"));
     useEffect(() => {
-        // getData();
-    }, [images]);
+        document.title = "My Profile";
+        getData();
+    }, [storedUserId]);
+  
+    const getData = () => {
+        DataService.getUserDetail(storedUserId).then((data) => {
+            setData(data.data.data);
+            setName(data.data.data.name);
+            setEmail(data.data.data.email);
+            setLoading(false);
+        }).catch((error)=>{
+            const resMessage =
+            (error.response &&
+              error.response.data &&
+              error.response.data.message) ||
+            error.message ||
+            error.toString();
+  
+           setLoading(false);
+            toast.error(resMessage, {
+                position: toast.POSITION.TOP_RIGHT
+            });
+        });
+    }
 
 
     const onFileChangeCapture = (e) => {
@@ -126,15 +126,8 @@ const AddTicketSection = () => {
         const heading = e.target.value;
         setHeading(heading);
     };
-    const onChangPrice = (e) => {
-        const price = e.target.value;
-        setPrice(price);
-    };
 
-    const onChangeReviews = (e) => {
-        const review = e.target.value;
-        setReview(review);
-    };
+
 
     const onChangeCategory = (e) => {
         const category = e.target.value;
@@ -146,83 +139,23 @@ const AddTicketSection = () => {
         setPriority(priority);
     };
 
-    
-    const onChangeLessonId = (e) => {
-        const LessonId = e.target.value;
-        setLessonId(LessonId);
-    };
+
     const onChangeDescription = (e) => {
         const description = e.target.value;
         setDescription(description);
     };
 
-    const onChangeFeature = (e) => {
-        const feature = e.target.value;
-        setFeature(feature);
-    };
+ 
 
     const triggerFile = () => {
         /*Collecting node-element and performing click*/
         inputFileRef.current.click();
     };
 
-    const handleInputChange = (e) => {
-        setInputValue(e.target.value);
-      };
-      const handleInputChangeAm = (e) => {
-        setAmenities(e.target.value);
-      };
-      const handleInputChangeOther = (e) => {
-        setOther(e.target.value);
-      };
-      
-      
 
-    const handleKeyPress = (e) => {
-        if (e.key === "Enter" && inputValue.trim() !== "") {
-          setHobbies([...hobbies, inputValue]);
-          setInputValue("");
-        }
-      };
+    //const storedUserId = JSON.parse(localStorage.getItem("userId"));
+    console.log ('user_id',storedUserId);
 
-      const handleDelete = (index) => {
-        const newHobbies = [...hobbies];
-        newHobbies.splice(index, 1);
-        setHobbies(newHobbies);
-      };
-      
-
-      const handleDeleteAmenities = (index) => {
-        const newAmen = [...amen];
-        newAmen.splice(index, 1);
-        setAmen(newAmen);
-      };
-
-
-      const handleKeyAmenities = (e) => {
-        if (e.key === "Enter" && amenities.trim() !== "") {
-          setAmen([...amen, amenities]);
-          console.log(amen);
-          setAmenities("");
-        }
-      };
-
-      const handleDeleteOther = (index) => {
-        const newOthers = [...otherValue];
-        console.log(newOthers)
-        newOthers.splice(index, 1);
-        setOtherValue(newOthers);
-      };
-
-
-      const handleKeyOther = (e) => {
-        if (e.key === "Enter" && other.trim() !== "") {
-          setOtherValue([...otherValue, other]);
-          setOther("");
-        }
-      };
-
-    const storedUserId = JSON.parse(localStorage.getItem("userId"));
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -236,23 +169,23 @@ const AddTicketSection = () => {
                     data.append('image', file)
                 })
             }
+            
             data.append('category',category);
             data.append('heading', heading);
-           //data.append('description', editorRef.current.getContent());
             data.append('description', description);
-
             data.append('priority', priority);
-           // data.append('ownerId',storedUserId);
+            data.append('user_id',storedUserId);
+
 
             DataService.addTicketing(data).then(
                 () => {
                     toast.success('Ticket added successfully', {
                         position: toast.POSITION.TOP_RIGHT
                     });
-                    setTimeout(() => {
-                        navigate("/ticket");
-                        window.location.reload();
-                    }, 2000); // Adjust the delay time as needed
+                    // setTimeout(() => {
+                    //     navigate("/ticket");
+                    //     window.location.reload();
+                    // }, 2000); // Adjust the delay time as needed
                 },
                     
                     //navigate("/ticket");
@@ -378,8 +311,31 @@ const AddTicketSection = () => {
                         <div className="card mb-5">
                             <div className="card-body p-4">
 
+                            <div className="mb-3">
+                                    <label className="form-label">Name:*</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        required
+                                        value={name}
+                                     />
+                                    {/* <div className="form-text">A Lesson name is required and recommended to be unique.</div> */}
+                                </div>
+
                                 <div className="mb-3">
-                                    <label className="form-label">Heading*</label>
+                                    <label className="form-label">Email*</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        required
+                                        value={email}
+                                        //onChange={onChangeName}
+                                     />
+                                    {/* <div className="form-text">A Lesson name is required and recommended to be unique.</div> */}
+                                </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label">Subject*</label>
                                     <input
                                         type="text"
                                         className="form-control"
@@ -398,9 +354,11 @@ const AddTicketSection = () => {
                                     onChange={onChangeCategory}
                                 >
                                     <option value="" disabled selected>Select Category</option>
-                                    <option value="option1">Option 1</option>
-                                    <option value="option2">Option 2</option>
-                                    <option value="option3">Option 3</option>
+                                    <option value="general">General</option>
+                                    <option value="support">Support</option>
+                                    <option value="advertising">Advertising</option>
+                                    <option value="billing">Billing</option>
+
                                     {/* Add more options as needed */}
                                 </select>
                                 </div>
